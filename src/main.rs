@@ -5,7 +5,8 @@ use std::process::Command;
 
 fn main() {
     loop {
-        println!("> ");
+        let pwd = env::current_dir().unwrap();
+        println!("> {}", pwd.display());
         stdout().flush().unwrap();
 
         let mut input = String::new();
@@ -23,11 +24,12 @@ fn main() {
                     eprint!("{}", e);
                 }
             }
+            "exit" => return,
             command => {
-                let mut child = Command::new(command).args(args).spawn().unwrap();
-
-                // don't accept another command until the current one completes
-                let _ = child.wait();
+                if let Ok(mut child) = Command::new(command).args(args).spawn() {
+                    // don't accept another command until the current one completes
+                    let _ = child.wait();
+                }
             }
         }
     }
