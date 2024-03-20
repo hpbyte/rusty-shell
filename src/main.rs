@@ -1,4 +1,6 @@
+use std::env;
 use std::io::*;
+use std::path::Path;
 use std::process::Command;
 
 fn main() {
@@ -13,9 +15,20 @@ fn main() {
         let command = parts.next().unwrap();
         let args = parts;
 
-        let mut child = Command::new(command).args(args).spawn().unwrap();
+        match command {
+            "cd" => {
+                let dir = args.peekable().peek().map_or("/", |x| *x);
+                let root = Path::new(dir);
+                if let Err(e) = env::set_current_dir(&root) {
+                    eprint!("{}", e);
+                }
+            }
+            command => {
+                let mut child = Command::new(command).args(args).spawn().unwrap();
 
-        // don't accept another command until the current one completes
-        let _ = child.wait();
+                // don't accept another command until the current one completes
+                let _ = child.wait();
+            }
+        }
     }
 }
